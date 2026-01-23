@@ -73,10 +73,6 @@ struct FabBarRepresentable<Tab: Hashable>: UIViewRepresentable {
         // needs to know the final selection for when onHighlightEnd is called
         uiView.labelsOverlay.setSelectedIndex(newIndex, animated: false)
 
-        // Keep VoiceOver focus on the tab bar after selection changes
-        if selectionChanged {
-            UIAccessibility.post(notification: .screenChanged, argument: control)
-        }
     }
 
     func sizeThatFits(_: ProposedViewSize, uiView _: GlassTabBarContainer<Tab>, context _: Context) -> CGSize? {
@@ -86,6 +82,7 @@ struct FabBarRepresentable<Tab: Hashable>: UIViewRepresentable {
     @MainActor
     class Coordinator: NSObject {
         var parent: FabBarRepresentable<Tab>
+
         init(parent: FabBarRepresentable<Tab>) {
             self.parent = parent
         }
