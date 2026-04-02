@@ -12,7 +12,7 @@ import SwiftUI
 struct FabBarModifier<Value: Hashable>: ViewModifier {
     @Binding var selection: Value
     let tabs: [FabBarTab<Value>]
-    let action: FabBarAction
+    let action: FabBarAction?
     let isVisible: Bool
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -83,7 +83,7 @@ public extension View {
     func fabBar<Value: Hashable>(
         selection: Binding<Value>,
         tabs: [FabBarTab<Value>],
-        action: FabBarAction,
+        action: FabBarAction? = nil,
         isVisible: Bool = true
     ) -> some View {
         modifier(FabBarModifier(selection: selection, tabs: tabs, action: action, isVisible: isVisible))

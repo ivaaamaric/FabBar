@@ -42,7 +42,7 @@ public struct FabBar<Value: Hashable>: View {
     public let tabs: [FabBarTab<Value>]
 
     /// The floating action button configuration.
-    public var action: FabBarAction
+    public var action: FabBarAction?
 
     /// Creates a FabBar with the specified configuration.
     ///
@@ -53,7 +53,7 @@ public struct FabBar<Value: Hashable>: View {
     public init(
         selection: Binding<Value>,
         tabs: [FabBarTab<Value>],
-        action: FabBarAction
+        action: FabBarAction?
     ) {
         self._selection = selection
         self.tabs = tabs

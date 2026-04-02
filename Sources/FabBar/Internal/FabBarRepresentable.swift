@@ -8,7 +8,7 @@ import UIKit
 @available(iOS 26.0, *)
 struct FabBarRepresentable<Value: Hashable>: UIViewRepresentable {
     var tabs: [FabBarTab<Value>]
-    var action: FabBarAction
+    var action: FabBarAction?
 
     @Binding var activeTab: Value
 
@@ -27,6 +27,9 @@ struct FabBarRepresentable<Value: Hashable>: UIViewRepresentable {
 
         configureSegmentContent(on: control)
         control.selectedSegmentTintColor = segmentTintColor(for: control.traitCollection)
+        let itemTint = tabItemTintColor(for: control.traitCollection)
+        control.activeTintColor = itemTint
+        control.inactiveTintColor = itemTint
 
         control.addTarget(context.coordinator, action: #selector(context.coordinator.tabSelected(_:)), for: .valueChanged)
 
@@ -54,6 +57,10 @@ struct FabBarRepresentable<Value: Hashable>: UIViewRepresentable {
 
         let control = uiView.segmentedControl
         control.selectedSegmentTintColor = segmentTintColor(for: uiView.traitCollection)
+        let itemTint = tabItemTintColor(for: uiView.traitCollection)
+        control.activeTintColor = itemTint
+        control.inactiveTintColor = itemTint
+        uiView.updateAction(action)
 
         // Sync segments when tabs change (count, order, or identity)
         let currentTabValues = tabs.map(\.value)
@@ -79,14 +86,6 @@ struct FabBarRepresentable<Value: Hashable>: UIViewRepresentable {
         let newIndex = tabs.firstIndex { $0.value == activeTab } ?? 0
         if control.selectedSegmentIndex != newIndex {
             control.selectedSegmentIndex = newIndex
-        }
-
-        // Set accent color from the view's inherited tintColor, converted to a concrete color.
-        // Only update when tintAdjustmentMode is normal — when dimmed (e.g. sheet presented),
-        // tintColor returns a dimmed gray which would incorrectly overwrite the accent color.
-        if uiView.tintAdjustmentMode == .normal, let tint = uiView.tintColor {
-            let concreteAccentColor = UIColor(cgColor: tint.cgColor)
-            control.activeTintColor = concreteAccentColor
         }
     }
 
@@ -125,6 +124,18 @@ struct FabBarRepresentable<Value: Hashable>: UIViewRepresentable {
             return .label.withAlphaComponent(0.15)
         default:
             return .label.withAlphaComponent(0.08)
+        }
+    }
+
+    /// Desired tab item color:
+    /// - Dark mode: fg-primary 900 (maps to white in this design system)
+    /// - Light mode: textPrimary 900 (maps to near-black in this design system)
+    private func tabItemTintColor(for traitCollection: UITraitCollection) -> UIColor {
+        switch traitCollection.userInterfaceStyle {
+        case .dark:
+            return .white
+        default:
+            return .label
         }
     }
 
