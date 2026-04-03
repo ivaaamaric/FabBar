@@ -13,6 +13,7 @@ struct FabBarModifier<Value: Hashable>: ViewModifier {
     @Binding var selection: Value
     let tabs: [FabBarTab<Value>]
     let action: FabBarAction?
+    let appearance: FabBarAppearance
     let isVisible: Bool
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -41,7 +42,7 @@ struct FabBarModifier<Value: Hashable>: ViewModifier {
         content
             .safeAreaBar(edge: .bottom) {
                 if showsFabBar {
-                    FabBar(selection: $selection, tabs: tabs, action: action)
+                    FabBar(selection: $selection, tabs: tabs, action: action, appearance: appearance)
                         .padding(.horizontal, Constants.horizontalPadding)
                         .padding(.bottom, Constants.bottomPadding)
                 }
@@ -79,13 +80,15 @@ public extension View {
     ///   - selection: A binding to the currently selected tab.
     ///   - tabs: The tabs to display.
     ///   - action: The floating action button configuration.
+    ///   - colors: Optional appearance override applied when this view appears.
     ///   - isVisible: Whether the FabBar is visible. Defaults to `true`.
     func fabBar<Value: Hashable>(
         selection: Binding<Value>,
         tabs: [FabBarTab<Value>],
         action: FabBarAction? = nil,
+        appearance: FabBarAppearance = .default,
         isVisible: Bool = true
     ) -> some View {
-        modifier(FabBarModifier(selection: selection, tabs: tabs, action: action, isVisible: isVisible))
+        modifier(FabBarModifier(selection: selection, tabs: tabs, action: action, appearance: appearance, isVisible: isVisible))
     }
 }

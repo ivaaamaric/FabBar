@@ -28,6 +28,14 @@ import SwiftUI
 ///     action: FabBarAction(systemImage: "plus", accessibilityLabel: "Add Item") {
 ///         // Handle tap
 ///     }
+///     colors: .init(
+///         fabBackgroundTint: .systemBlue,
+///         fabIconTint: .white,
+///         tabItemTintLight: .label,
+///         tabItemTintDark: .white,
+///         segmentIndicatorTintLight: UIColor.label.withAlphaComponent(0.08),
+///         segmentIndicatorTintDark: UIColor.label.withAlphaComponent(0.15)
+///     )
 /// )
 /// ```
 ///
@@ -44,20 +52,26 @@ public struct FabBar<Value: Hashable>: View {
     /// The floating action button configuration.
     public var action: FabBarAction?
 
+    /// Optional appearance override applied when this FabBar appears.
+    public var appearance: FabBarAppearance
+
     /// Creates a FabBar with the specified configuration.
     ///
     /// - Parameters:
     ///   - selection: A binding to the currently selected tab.
     ///   - tabs: The tabs to display.
     ///   - action: The floating action button configuration.
+    ///   - colors: Optional appearance override applied when the FabBar appears.
     public init(
         selection: Binding<Value>,
         tabs: [FabBarTab<Value>],
-        action: FabBarAction?
+        action: FabBarAction?,
+        appearance: FabBarAppearance = .default
     ) {
         self._selection = selection
         self.tabs = tabs
         self.action = action
+        self.appearance = appearance
     }
 
     public var body: some View {
@@ -71,6 +85,7 @@ public struct FabBar<Value: Hashable>: View {
             FabBarRepresentable(
                 tabs: tabs,
                 action: action,
+                appearance: appearance,
                 activeTab: $selection
             )
             .frame(height: Constants.barHeight)

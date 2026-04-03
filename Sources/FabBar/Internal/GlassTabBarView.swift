@@ -1,4 +1,3 @@
-import CoreUI
 import UIKit
 
 /// The root UIKit view that assembles the tab bar with glass effects.
@@ -9,6 +8,7 @@ final class GlassTabBarView: UIView {
     let segmentedGlassView: UIVisualEffectView
     let segmentedControl: TabBarSegmentedControl
     let fabGlassView: UIVisualEffectView
+    private var appearance: FabBarAppearance
     private var fabButton: UIButton?
     private var action: FabBarAction?
     private var fabConstraints: [NSLayoutConstraint] = []
@@ -27,11 +27,13 @@ final class GlassTabBarView: UIView {
     init(
         segmentedControl: TabBarSegmentedControl,
         tabCount: Int,
-        action: FabBarAction?
+        action: FabBarAction?,
+        appearance: FabBarAppearance
     ) {
         self.segmentedControl = segmentedControl
         self.tabCount = tabCount
         self.action = action
+        self.appearance = appearance
 
         // Create glass container effect for morphing
         let containerEffect = UIGlassContainerEffect()
@@ -46,7 +48,7 @@ final class GlassTabBarView: UIView {
         // Create FAB button
         let fabGlassEffect = UIGlassEffect()
         fabGlassEffect.isInteractive = true
-        fabGlassEffect.tintColor = .fgBrandBlueSecondary
+        fabGlassEffect.tintColor = appearance.colors.fabBackgroundTint
         fabGlassView = UIVisualEffectView(effect: fabGlassEffect)
 
         super.init(frame: .zero)
@@ -69,7 +71,7 @@ final class GlassTabBarView: UIView {
 
     private func applyFabTintEffect() {
         // Recreate the effect to ensure tint is applied immediately/reliably.
-        fabGlassView.tintColor = .fgBrandBlueSecondary
+        fabGlassView.tintColor = appearance.colors.fabBackgroundTint
         // Clearing the effect first makes UIKit reliably re-render the tint
         // when toggling hidden/shown quickly.
         fabGlassView.effect = nil
@@ -77,6 +79,12 @@ final class GlassTabBarView: UIView {
         effect.isInteractive = true
         effect.tintColor = fabGlassView.tintColor
         fabGlassView.effect = effect
+    }
+
+    func updateAppearance(_ appearance: FabBarAppearance) {
+        self.appearance = appearance
+        applyFabTintEffect()
+        fabButton?.tintColor = appearance.colors.fabIconTint
     }
 
     private func setupViews() {
@@ -179,7 +187,7 @@ final class GlassTabBarView: UIView {
             fabButton?.accessibilityLabel = newAction.accessibilityLabel
             let config = UIImage.SymbolConfiguration(pointSize: Constants.fabIconPointSize, weight: .medium)
             fabButton?.setImage(UIImage(systemName: newAction.systemImage, withConfiguration: config), for: .normal)
-            fabButton?.tintColor = .white
+            fabButton?.tintColor = appearance.colors.fabIconTint
             // Replace action handler (simple + safe: rebuild the button actions)
             fabButton?.removeTarget(nil, action: nil, for: .allEvents)
             fabButton?.addAction(UIAction { _ in newAction.action() }, for: .touchUpInside)
@@ -218,7 +226,7 @@ final class GlassTabBarView: UIView {
 
             let config = UIImage.SymbolConfiguration(pointSize: Constants.fabIconPointSize, weight: .medium)
             fabButton?.setImage(UIImage(systemName: newAction.systemImage, withConfiguration: config), for: .normal)
-            fabButton?.tintColor = .white
+            fabButton?.tintColor = appearance.colors.fabIconTint
             fabButton?.accessibilityLabel = newAction.accessibilityLabel
             fabButton?.accessibilityTraits = .button
             fabButton?.tintAdjustmentMode = .automatic
@@ -232,7 +240,7 @@ final class GlassTabBarView: UIView {
         if willShow {
             fabGlassView.isHidden = false
             fabGlassView.isUserInteractionEnabled = false
-            // Re-apply after unhide to avoid occasional untinted (white) glass when toggling quickly.
+            // Re-apply after unhide so tint is correct even when toggling quickly.
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
                 guard transitionID == self.actionTransitionID else { return }

@@ -9,6 +9,7 @@ import UIKit
 struct FabBarRepresentable<Value: Hashable>: UIViewRepresentable {
     var tabs: [FabBarTab<Value>]
     var action: FabBarAction?
+    var appearance: FabBarAppearance
 
     @Binding var activeTab: Value
 
@@ -26,10 +27,7 @@ struct FabBarRepresentable<Value: Hashable>: UIViewRepresentable {
         control.selectedSegmentIndex = selectedIndex
 
         configureSegmentContent(on: control)
-        control.selectedSegmentTintColor = segmentTintColor(for: control.traitCollection)
-        let itemTint = tabItemTintColor(for: control.traitCollection)
-        control.activeTintColor = itemTint
-        control.inactiveTintColor = itemTint
+        applyAppearance(to: control, traitCollection: control.traitCollection)
 
         control.addTarget(context.coordinator, action: #selector(context.coordinator.tabSelected(_:)), for: .valueChanged)
 
@@ -46,7 +44,8 @@ struct FabBarRepresentable<Value: Hashable>: UIViewRepresentable {
         let container = GlassTabBarView(
             segmentedControl: control,
             tabCount: tabs.count,
-            action: action
+            action: action,
+            appearance: appearance
         )
 
         return container
@@ -56,11 +55,9 @@ struct FabBarRepresentable<Value: Hashable>: UIViewRepresentable {
         context.coordinator.parent = self
 
         let control = uiView.segmentedControl
-        control.selectedSegmentTintColor = segmentTintColor(for: uiView.traitCollection)
-        let itemTint = tabItemTintColor(for: uiView.traitCollection)
-        control.activeTintColor = itemTint
-        control.inactiveTintColor = itemTint
+        applyAppearance(to: control, traitCollection: uiView.traitCollection)
         uiView.updateAction(action)
+        uiView.updateAppearance(appearance)
 
         // Sync segments when tabs change (count, order, or identity)
         let currentTabValues = tabs.map(\.value)
@@ -119,11 +116,12 @@ struct FabBarRepresentable<Value: Hashable>: UIViewRepresentable {
     }
 
     private func segmentTintColor(for traitCollection: UITraitCollection) -> UIColor {
+        let colors = appearance.colors
         switch traitCollection.userInterfaceStyle {
         case .dark:
-            return .label.withAlphaComponent(0.15)
+            return colors.segmentIndicatorTintDark
         default:
-            return .label.withAlphaComponent(0.08)
+            return colors.segmentIndicatorTintLight
         }
     }
 
@@ -131,12 +129,20 @@ struct FabBarRepresentable<Value: Hashable>: UIViewRepresentable {
     /// - Dark mode: fg-primary 900 (maps to white in this design system)
     /// - Light mode: textPrimary 900 (maps to near-black in this design system)
     private func tabItemTintColor(for traitCollection: UITraitCollection) -> UIColor {
+        let colors = appearance.colors
         switch traitCollection.userInterfaceStyle {
         case .dark:
-            return .white
+            return colors.tabItemTintDark
         default:
-            return .label
+            return colors.tabItemTintLight
         }
+    }
+
+    private func applyAppearance(to control: TabBarSegmentedControl, traitCollection: UITraitCollection) {
+        control.selectedSegmentTintColor = segmentTintColor(for: traitCollection)
+        let itemTint = tabItemTintColor(for: traitCollection)
+        control.activeTintColor = itemTint
+        control.inactiveTintColor = itemTint
     }
 
     @MainActor
